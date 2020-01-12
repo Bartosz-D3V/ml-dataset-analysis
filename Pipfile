@@ -12,6 +12,9 @@ numpy = "*"
 sklearn = "*"
 jupyterlab = "*"
 matplotlib = "*"
+seaborn = "*"
+yellowbrick = "*"
+xgboost = "*"
 
 [requires]
 python_version = "3.7"
