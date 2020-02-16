@@ -1,20 +1,27 @@
+import logging
+
+from datawig import SimpleImputer
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import KBinsDiscretizer
 
 
 class AgeImputer(BaseEstimator, TransformerMixin):
-    def __init__(self, convert_to_bins=False):
-        self.simple_imputer = None
-        self.convert_to_bins = convert_to_bins
-
     def fit(self, X, y=None):
-        self.simple_imputer = SimpleImputer()
         return self
 
     def transform(self, X, y=None):
-        X['Age'] = X['Age'].fillna(X.groupby(['Title', 'Pclass']).transform('median')['Age'])
-        if self.convert_to_bins:
-            bins_dsc = KBinsDiscretizer(n_bins=25, encode='ordinal')
-            X['Age'] = bins_dsc.fit_transform(X[['Age']])
+        logging.getLogger().setLevel(logging.CRITICAL)
+        if X['Age'].isna().sum() == 0:
+            return X
+        df_train = X[X['Age'].notnull()]
+        df_test = X[X['Age'].isnull()]
+        imputer = SimpleImputer(
+            input_columns=['Title', 'Pclass', 'Sex', 'Parch', 'SibSp'],
+            output_column='Age',
+            output_path='age_imputer_model'
+        )
+        imputer.fit(train_df=df_train, num_epochs=100)
+        missing_ages = imputer.predict(df_test)['Age_imputed'] \
+            .apply(lambda age: int(age)) \
+            .apply(lambda age: 0 if age < 0 else age)
+        X['Age'] = X['Age'].fillna(missing_ages)
         return X

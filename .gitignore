@@ -236,3 +236,6 @@ dmypy.json
 .pyre/
 
 submission/
+
+# Datawig model output
+/titanic_classification/age_imputer_model/
